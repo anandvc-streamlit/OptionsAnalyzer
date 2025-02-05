@@ -32,6 +32,8 @@ st.title("📈 Options Trading ROI Calculator")
 st.markdown("""
 This calculator helps you analyze the potential returns from options trading strategies.
 Enter a stock ticker to get started!
+
+_Data is sourced from Yahoo Finance and updates regularly during market hours (slight delay may occur)._
 """)
 
 # Sidebar
@@ -112,14 +114,14 @@ if ticker:
                     # Detailed data table
                     st.markdown("### Options Data Table")
                     st.markdown("Click on column headers to sort the data.")
-
+                    
                     # Format the columns for better display
                     formatted_df = filtered_df.copy()
                     formatted_df['Strike Price'] = formatted_df['Strike Price'].map('${:,.2f}'.format)
                     formatted_df['Premium'] = formatted_df['Premium'].map('${:,.2f}'.format)
                     formatted_df['Annualized ROI (%)'] = formatted_df['Annualized ROI (%)'].map('{:,.2f}%'.format)
                     formatted_df['Implied Volatility'] = formatted_df['Implied Volatility'].map('{:,.2f}%'.format)
-
+                    
                     # Display sortable dataframe
                     st.dataframe(
                         formatted_df.sort_values('Annualized ROI (%)', ascending=False),
