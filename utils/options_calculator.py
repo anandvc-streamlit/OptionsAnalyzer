@@ -29,7 +29,12 @@ def calculate_days_to_expiry(expiry_date):
     Calculate days until option expiration
     """
     try:
-        expiry = datetime.strptime(str(expiry_date), '%Y-%m-%d')
+        # Convert expiry_date to string if it's not already
+        expiry_str = str(expiry_date)
+        print(f"Processing expiry date: {expiry_str}")
+
+        # Try to parse the date
+        expiry = datetime.strptime(expiry_str, '%Y-%m-%d')
         days = (expiry - datetime.now()).days
         return max(days, 0)
     except Exception as e:
@@ -48,7 +53,8 @@ def process_options_data(options_chain, option_type):
 
     for _, row in options_chain.iterrows():
         try:
-            days_to_expiry = calculate_days_to_expiry(str(row.name))
+            # Use the expirationDate column instead of the index
+            days_to_expiry = calculate_days_to_expiry(row['expirationDate'])
             if days_to_expiry == 0:
                 continue
 
@@ -67,17 +73,19 @@ def process_options_data(options_chain, option_type):
             if roi > 0:  # Only include valid ROI calculations
                 results.append({
                     'Strike Price': row['strike'],
-                    'Expiry Date': row.name,
+                    'Expiry Date': row['expirationDate'],
                     'Premium': premium,
                     'Days to Expiry': days_to_expiry,
                     'Volume': row['volume'],
                     'Open Interest': row['openInterest'],
                     'Implied Volatility': round(row['impliedVolatility'] * 100, 2),
-                    'Annualized ROI (%)': roi
+                    'Annualized ROI (%)': roi,
+                    'Option Type': row['optionType']
                 })
 
         except Exception as e:
             print(f"Error processing row: {str(e)}")
             continue
 
+    print(f"Processed {len(results)} valid options")
     return results

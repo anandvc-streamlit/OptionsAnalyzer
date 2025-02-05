@@ -47,6 +47,7 @@ def get_options_chain(ticker_symbol, option_type='both'):
                 if option_type in ['call', 'both']:
                     calls = opt.calls
                     calls['optionType'] = 'CALL'
+                    calls['expirationDate'] = date  # Add expiration date to the dataframe
                     # Filter out invalid data
                     calls = calls[calls['lastPrice'] > 0]
                     all_options.append(calls)
@@ -54,6 +55,7 @@ def get_options_chain(ticker_symbol, option_type='both'):
                 if option_type in ['put', 'both']:
                     puts = opt.puts
                     puts['optionType'] = 'PUT'
+                    puts['expirationDate'] = date  # Add expiration date to the dataframe
                     # Filter out invalid data
                     puts = puts[puts['lastPrice'] > 0]
                     all_options.append(puts)
@@ -74,6 +76,7 @@ def get_options_chain(ticker_symbol, option_type='both'):
             print("No valid options data after filtering")
             return None
 
+        print(f"Successfully processed {len(combined_options)} options contracts")
         return combined_options
 
     except Exception as e:
