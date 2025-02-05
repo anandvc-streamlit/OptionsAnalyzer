@@ -85,9 +85,9 @@ if ticker:
                 # Filters
                 col1, col2 = st.columns(2)
                 with col1:
-                    min_volume = st.number_input("Minimum Volume", value=0, min_value=0)
+                    min_volume = st.number_input("Minimum Volume", value=1, min_value=0)
                 with col2:
-                    min_open_interest = st.number_input("Minimum Open Interest", value=0, min_value=0)
+                    min_open_interest = st.number_input("Minimum Open Interest", value=1, min_value=0)
                 
                 # Filter data
                 filtered_df = df[
