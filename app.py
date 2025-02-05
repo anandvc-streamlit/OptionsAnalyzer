@@ -112,32 +112,19 @@ if ticker:
                     # Detailed data table
                     st.markdown("### Options Data Table")
                     st.markdown("Click on column headers to sort the data.")
-                    st.data_editor(
-                        filtered_df.sort_values('Annualized ROI (%)', ascending=False),
+
+                    # Format the columns for better display
+                    formatted_df = filtered_df.copy()
+                    formatted_df['Strike Price'] = formatted_df['Strike Price'].map('${:,.2f}'.format)
+                    formatted_df['Premium'] = formatted_df['Premium'].map('${:,.2f}'.format)
+                    formatted_df['Annualized ROI (%)'] = formatted_df['Annualized ROI (%)'].map('{:,.2f}%'.format)
+                    formatted_df['Implied Volatility'] = formatted_df['Implied Volatility'].map('{:,.2f}%'.format)
+
+                    # Display sortable dataframe
+                    st.dataframe(
+                        formatted_df.sort_values('Annualized ROI (%)', ascending=False),
                         use_container_width=True,
-                        num_rows="dynamic",
-                        column_config={
-                            "Strike Price": st.column_config.NumberColumn(
-                                "Strike Price",
-                                help="Option strike price",
-                                format="$%.2f"
-                            ),
-                            "Premium": st.column_config.NumberColumn(
-                                "Premium",
-                                help="Option premium",
-                                format="$%.2f"
-                            ),
-                            "Annualized ROI (%)": st.column_config.NumberColumn(
-                                "Annualized ROI (%)",
-                                help="Annualized Return on Investment",
-                                format="%.2f%%"
-                            ),
-                            "Implied Volatility": st.column_config.NumberColumn(
-                                "Implied Volatility",
-                                help="Option implied volatility",
-                                format="%.2f%%"
-                            )
-                        },
+                        column_order=formatted_df.columns.tolist(),
                         hide_index=True
                     )
                 else:
