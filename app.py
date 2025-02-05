@@ -115,30 +115,35 @@ if ticker:
                     st.markdown("### Options Data Table")
                     st.markdown("Click on column headers to sort the data.")
 
-                    # Create a copy for display
+                    # Create a copy for display with proper formatting
                     display_df = filtered_df.copy()
 
-                    # Store numerical values for sorting
-                    display_df['ROI_sort'] = display_df['Annualized ROI (%)']
-
-                    # Format the columns for display
+                    # Format the display columns
                     display_df['Strike Price'] = display_df['Strike Price'].map('${:,.2f}'.format)
                     display_df['Premium'] = display_df['Premium'].map('${:,.2f}'.format)
-                    display_df['Annualized ROI (%)'] = display_df['Annualized ROI (%)'].map('{:,.2f}%'.format)
                     display_df['Implied Volatility'] = display_df['Implied Volatility'].map('{:,.2f}%'.format)
 
-                    # Display dataframe with both formatted and sorting columns
+                    # Display dataframe with proper column configuration
                     st.dataframe(
                         display_df,
                         use_container_width=True,
-                        column_order=[col for col in display_df.columns if col != 'ROI_sort'],
                         hide_index=True,
                         column_config={
-                            "ROI_sort": st.column_config.NumberColumn(
+                            "Annualized ROI (%)": st.column_config.NumberColumn(
                                 "Annualized ROI (%)",
-                                help="Used for sorting",
                                 format="%.2f%%",
-                                disabled=True
+                            ),
+                            "Strike Price": st.column_config.TextColumn(
+                                "Strike Price",
+                                help="Option strike price"
+                            ),
+                            "Premium": st.column_config.TextColumn(
+                                "Premium",
+                                help="Option premium"
+                            ),
+                            "Implied Volatility": st.column_config.TextColumn(
+                                "Implied Volatility",
+                                help="Option implied volatility"
                             )
                         }
                     )
