@@ -110,9 +110,35 @@ if ticker:
                     st.plotly_chart(fig, use_container_width=True)
                     
                     # Detailed data table
-                    st.dataframe(
+                    st.markdown("### Options Data Table")
+                    st.markdown("Click on column headers to sort the data.")
+                    st.data_editor(
                         filtered_df.sort_values('Annualized ROI (%)', ascending=False),
-                        use_container_width=True
+                        use_container_width=True,
+                        num_rows="dynamic",
+                        column_config={
+                            "Strike Price": st.column_config.NumberColumn(
+                                "Strike Price",
+                                help="Option strike price",
+                                format="$%.2f"
+                            ),
+                            "Premium": st.column_config.NumberColumn(
+                                "Premium",
+                                help="Option premium",
+                                format="$%.2f"
+                            ),
+                            "Annualized ROI (%)": st.column_config.NumberColumn(
+                                "Annualized ROI (%)",
+                                help="Annualized Return on Investment",
+                                format="%.2f%%"
+                            ),
+                            "Implied Volatility": st.column_config.NumberColumn(
+                                "Implied Volatility",
+                                help="Option implied volatility",
+                                format="%.2f%%"
+                            )
+                        },
+                        hide_index=True
                     )
                 else:
                     st.warning("No options data matching the selected filters.")
