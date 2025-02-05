@@ -115,16 +115,19 @@ if ticker:
                     st.markdown("### Options Data Table")
                     st.markdown("Click on column headers to sort the data.")
                     
+                    # Sort the dataframe first using numerical values
+                    sorted_df = filtered_df.sort_values('Annualized ROI (%)', ascending=False)
+
                     # Format the columns for better display
-                    formatted_df = filtered_df.copy()
+                    formatted_df = sorted_df.copy()
                     formatted_df['Strike Price'] = formatted_df['Strike Price'].map('${:,.2f}'.format)
                     formatted_df['Premium'] = formatted_df['Premium'].map('${:,.2f}'.format)
                     formatted_df['Annualized ROI (%)'] = formatted_df['Annualized ROI (%)'].map('{:,.2f}%'.format)
                     formatted_df['Implied Volatility'] = formatted_df['Implied Volatility'].map('{:,.2f}%'.format)
-                    
-                    # Display sortable dataframe
+
+                    # Display dataframe with pre-sorted values
                     st.dataframe(
-                        formatted_df.sort_values('Annualized ROI (%)', ascending=False),
+                        formatted_df,
                         use_container_width=True,
                         column_order=formatted_df.columns.tolist(),
                         hide_index=True
