@@ -4,7 +4,7 @@ from datetime import datetime
 
 def get_stock_info(ticker_symbol):
     """
-    Fetch basic stock information
+    Fetch basic stock information with improved price handling
     """
     try:
         stock = yf.Ticker(ticker_symbol)
@@ -15,9 +15,23 @@ def get_stock_info(ticker_symbol):
             print(f"No information found for ticker {ticker_symbol}")
             return None
 
+        # Get current price with fallbacks
+        current_price = None
+        price_sources = ['regularMarketPrice', 'currentPrice', 'previousClose']
+
+        for source in price_sources:
+            current_price = info.get(source)
+            if current_price:
+                print(f"Found price from source: {source}")
+                break
+
+        if not current_price:
+            print(f"Warning: Could not fetch price for {ticker_symbol}")
+            return None
+
         return {
             'name': info.get('longName', 'N/A'),
-            'current_price': info.get('regularMarketPrice', 0),
+            'current_price': current_price,
             'currency': info.get('currency', 'USD'),
             'market_cap': info.get('marketCap', 0),
         }
@@ -47,16 +61,14 @@ def get_options_chain(ticker_symbol, option_type='both'):
                 if option_type in ['call', 'both']:
                     calls = opt.calls
                     calls['optionType'] = 'CALL'
-                    calls['expirationDate'] = date  # Add expiration date to the dataframe
-                    # Filter out invalid data
+                    calls['expirationDate'] = date
                     calls = calls[calls['lastPrice'] > 0]
                     all_options.append(calls)
 
                 if option_type in ['put', 'both']:
                     puts = opt.puts
                     puts['optionType'] = 'PUT'
-                    puts['expirationDate'] = date  # Add expiration date to the dataframe
-                    # Filter out invalid data
+                    puts['expirationDate'] = date
                     puts = puts[puts['lastPrice'] > 0]
                     all_options.append(puts)
 
@@ -69,7 +81,6 @@ def get_options_chain(ticker_symbol, option_type='both'):
             return None
 
         combined_options = pd.concat(all_options)
-        # Filter out any rows with missing essential data
         combined_options = combined_options.dropna(subset=['strike', 'lastPrice', 'bid', 'ask'])
 
         if combined_options.empty:
