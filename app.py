@@ -76,8 +76,8 @@ if ticker:
             
         if options_data is not None:
             # Process options data
-            results = process_options_data(options_data, option_type)
-            
+            results = process_options_data(options_data, stock_info['current_price'])
+
             if results:
                 # Convert results to DataFrame
                 df = pd.DataFrame(results)
@@ -114,15 +114,15 @@ if ticker:
                     # Detailed data table
                     st.markdown("### Options Data Table")
                     st.markdown("Click on column headers to sort the data.")
-
+                    
                     # Create a copy for display with proper formatting
                     display_df = filtered_df.copy()
-
+                    
                     # Format the display columns
                     display_df['Strike Price'] = display_df['Strike Price'].map('${:,.2f}'.format)
                     display_df['Premium'] = display_df['Premium'].map('${:,.2f}'.format)
                     display_df['Implied Volatility'] = display_df['Implied Volatility'].map('{:,.2f}%'.format)
-
+                    
                     # Display dataframe with proper column configuration
                     st.dataframe(
                         display_df,
@@ -147,7 +147,7 @@ if ticker:
                             )
                         }
                     )
-
+                    
                 else:
                     st.warning("No options data matching the selected filters.")
             else:

@@ -41,9 +41,9 @@ def calculate_days_to_expiry(expiry_date):
         print(f"Error calculating days to expiry: {str(e)}")
         return 0
 
-def process_options_data(options_chain, option_type):
+def process_options_data(options_chain, current_stock_price):
     """
-    Process options chain data and calculate ROI
+    Process options chain data and calculate ROI, filtering out strategically irrelevant options
     """
     if options_chain is None or options_chain.empty:
         print("No options chain data to process")
@@ -53,7 +53,11 @@ def process_options_data(options_chain, option_type):
 
     for _, row in options_chain.iterrows():
         try:
-            # Use the expirationDate column instead of the index
+            # Skip PUT options above current price and CALL options below current price
+            if (row['optionType'] == 'PUT' and row['strike'] > current_stock_price) or \
+               (row['optionType'] == 'CALL' and row['strike'] < current_stock_price):
+                continue
+
             days_to_expiry = calculate_days_to_expiry(row['expirationDate'])
             if days_to_expiry == 0:
                 continue
