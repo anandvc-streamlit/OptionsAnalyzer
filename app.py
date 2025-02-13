@@ -105,9 +105,9 @@ if ticker:
                     max_strike = st.number_input("Max Strike Price",
                                                value=float(df['Strike Price'].max()),
                                                step=1.0)
-                    max_premium = st.number_input("Max Premium",
-                                                value=float(df['Premium'].max()),
-                                                step=0.01)
+                    min_days = st.number_input("Min Days to Expiry",
+                                             value=0,
+                                             step=1)
                     min_open_interest = st.number_input("Min Open Interest",
                                                       value=0,
                                                       step=1)
@@ -116,9 +116,6 @@ if ticker:
                     min_roi = st.number_input("Min Annualized ROI (%)",
                                             value=float(df['Annualized ROI (%)'].min()),
                                             step=1.0)
-                    max_days = st.number_input("Max Days to Expiry",
-                                             value=int(df['Days to Expiry'].max()),
-                                             step=1)
                     min_iv = st.number_input("Min Implied Volatility (%)",
                                            value=float(df['Implied Volatility'].min()),
                                            step=1.0)
@@ -128,11 +125,10 @@ if ticker:
                     (df['Strike Price'] >= min_strike) &
                     (df['Strike Price'] <= max_strike) &
                     (df['Premium'] >= min_premium) &
-                    (df['Premium'] <= max_premium) &
                     (df['Volume'] >= min_volume) &
                     (df['Open Interest'] >= min_open_interest) &
                     (df['Annualized ROI (%)'] >= min_roi) &
-                    (df['Days to Expiry'] <= max_days) &
+                    (df['Days to Expiry'] >= min_days) &
                     (df['Implied Volatility'] >= min_iv)
                 ]
 
