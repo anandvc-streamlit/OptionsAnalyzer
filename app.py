@@ -36,19 +36,21 @@ Enter a stock ticker to get started!
 _Data is sourced from Yahoo Finance and updates regularly during market hours (slight delay may occur)._
 """)
 
-# Sidebar
-with st.sidebar:
-    st.header("Settings")
+# Main input controls
+col1, col2 = st.columns([2, 2])
+with col1:
     ticker = st.text_input("Enter Stock Ticker", value="AAPL").upper()
+with col2:
     option_type = st.selectbox(
         "Option Type",
         ["both", "call", "put"],
         format_func=lambda x: x.upper()
     )
 
-    st.markdown("---")
+# Sidebar with instructions
+with st.sidebar:
+    st.markdown("### How it works")
     st.markdown("""
-    ### How it works
     1. Enter a stock ticker
     2. Select option type
     3. View ROI calculations
