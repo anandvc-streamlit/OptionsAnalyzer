@@ -94,31 +94,31 @@ if ticker:
                     min_strike = st.number_input("Min Strike Price", 
                                                value=float(df['Strike Price'].min()),
                                                step=1.0)
-                    min_premium = st.number_input("Min Premium",
-                                                value=float(df['Premium'].min()),
-                                                step=0.01)
+                    max_strike = st.number_input("Max Strike Price",
+                                               value=float(df['Strike Price'].max()),
+                                               step=1.0)
                     min_volume = st.number_input("Min Volume",
                                                value=0,
                                                step=1)
 
                 with col2:
-                    max_strike = st.number_input("Max Strike Price",
-                                               value=float(df['Strike Price'].max()),
-                                               step=1.0)
                     min_days = st.number_input("Min Days to Expiry",
                                              value=0,
+                                             step=1)
+                    max_days = st.number_input("Max Days to Expiry",
+                                             value=int(df['Days to Expiry'].max()),
                                              step=1)
                     min_open_interest = st.number_input("Min Open Interest",
                                                       value=0,
                                                       step=1)
 
                 with col3:
+                    min_premium = st.number_input("Min Premium",
+                                                value=float(df['Premium'].min()),
+                                                step=0.01)
                     min_roi = st.number_input("Min Annualized ROI (%)",
                                             value=float(df['Annualized ROI (%)'].min()),
                                             step=1.0)
-                    max_days = st.number_input("Max Days to Expiry",
-                                             value=int(df['Days to Expiry'].max()),
-                                             step=1)
                     min_iv = st.number_input("Min Implied Volatility (%)",
                                            value=float(df['Implied Volatility'].min()),
                                            step=1.0)
