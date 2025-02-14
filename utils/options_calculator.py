@@ -62,8 +62,14 @@ def process_options_data(options_chain, current_stock_price):
             if days_to_expiry == 0:
                 continue
 
-            # Use last price if available, otherwise use the ask price
-            premium = row['lastPrice'] if row['lastPrice'] > 0 else row['ask']
+            # Calculate the midpoint of bid and ask prices
+            bid_price = row['bid']
+            ask_price = row['ask']
+
+            if bid_price <= 0 or ask_price <= 0:
+                continue
+
+            premium = (bid_price + ask_price) / 2
 
             if premium <= 0:
                 continue
@@ -79,6 +85,8 @@ def process_options_data(options_chain, current_stock_price):
                     'Strike Price': row['strike'],
                     'Expiry Date': row['expirationDate'],
                     'Premium': premium,
+                    'Bid': bid_price,
+                    'Ask': ask_price,
                     'Days to Expiry': days_to_expiry,
                     'Volume': row['volume'],
                     'Open Interest': row['openInterest'],

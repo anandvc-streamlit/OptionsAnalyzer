@@ -162,6 +162,8 @@ if ticker:
                     # Format the display columns
                     display_df['Strike Price'] = display_df['Strike Price'].map('${:,.2f}'.format)
                     display_df['Premium'] = display_df['Premium'].map('${:,.2f}'.format)
+                    display_df['Bid'] = display_df['Bid'].map('${:,.2f}'.format)
+                    display_df['Ask'] = display_df['Ask'].map('${:,.2f}'.format)
                     display_df['Implied Volatility'] = display_df['Implied Volatility'].map('{:,.2f}%'.format)
 
                     # Display dataframe with proper column configuration
@@ -179,8 +181,16 @@ if ticker:
                                 help="Option strike price"
                             ),
                             "Premium": st.column_config.TextColumn(
-                                "Premium",
-                                help="Option premium"
+                                "Premium (Bid-Ask Midpoint)",
+                                help="Midpoint of Bid and Ask prices"
+                            ),
+                            "Bid": st.column_config.TextColumn(
+                                "Bid",
+                                help="Bid price"
+                            ),
+                            "Ask": st.column_config.TextColumn(
+                                "Ask",
+                                help="Ask price"
                             ),
                             "Implied Volatility": st.column_config.TextColumn(
                                 "Implied Volatility",
