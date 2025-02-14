@@ -98,7 +98,7 @@ if ticker:
                                                value=float(df['Strike Price'].max()),
                                                step=1.0)
                     min_volume = st.number_input("Min Volume",
-                                               value=0,
+                                               value=5,
                                                step=1)
 
                 with col2:
@@ -109,7 +109,7 @@ if ticker:
                                              value=int(df['Days to Expiry'].max()),
                                              step=1)
                     min_open_interest = st.number_input("Min Open Interest",
-                                                      value=0,
+                                                      value=5,
                                                       step=1)
 
                 with col3:
