@@ -3,12 +3,17 @@ import pandas as pd
 from datetime import datetime
 import time
 
-def get_stock_info(ticker_symbol, max_retries=3):
+def get_stock_info(ticker_symbol, max_retries=3, initial_delay=5):
     """
     Fetch basic stock information with improved error handling and retry logic
     """
     for attempt in range(max_retries):
         try:
+            if attempt > 0:  # Don't sleep on first attempt
+                wait_time = initial_delay * (2 ** attempt)  # Exponential backoff starting from initial_delay
+                print(f"Rate limited. Waiting {wait_time} seconds before retry {attempt + 1}/{max_retries}...")
+                time.sleep(wait_time)
+
             stock = yf.Ticker(ticker_symbol)
             info = stock.info
 
@@ -39,23 +44,27 @@ def get_stock_info(ticker_symbol, max_retries=3):
             }
         except Exception as e:
             if "Too Many Requests" in str(e):
-                if attempt < max_retries - 1:  # Don't sleep on last attempt
-                    wait_time = (attempt + 1) * 2  # Exponential backoff
-                    print(f"Rate limited. Waiting {wait_time} seconds before retry...")
-                    time.sleep(wait_time)
-                    continue
+                if attempt == max_retries - 1:  # Last attempt
+                    return {
+                        "error": "Yahoo Finance rate limit reached. Please wait 1-2 minutes before trying again. "
+                                "This helps ensure stable data retrieval for all users."
+                    }
+                continue
             print(f"Error fetching stock info: {str(e)}")
-            if "Too Many Requests" in str(e):
-                return {"error": "Rate limited by Yahoo Finance. Please try again in a few minutes."}
             return None
     return None
 
-def get_options_chain(ticker_symbol, option_type='both', max_retries=3):
+def get_options_chain(ticker_symbol, option_type='both', max_retries=3, initial_delay=5):
     """
     Fetch options chain data with improved error handling and retry logic
     """
     for attempt in range(max_retries):
         try:
+            if attempt > 0:  # Don't sleep on first attempt
+                wait_time = initial_delay * (2 ** attempt)  # Exponential backoff starting from initial_delay
+                print(f"Rate limited. Waiting {wait_time} seconds before retry {attempt + 1}/{max_retries}...")
+                time.sleep(wait_time)
+
             stock = yf.Ticker(ticker_symbol)
             expirations = stock.options
 
@@ -104,11 +113,10 @@ def get_options_chain(ticker_symbol, option_type='both', max_retries=3):
 
         except Exception as e:
             if "Too Many Requests" in str(e):
-                if attempt < max_retries - 1:  # Don't sleep on last attempt
-                    wait_time = (attempt + 1) * 2  # Exponential backoff
-                    print(f"Rate limited. Waiting {wait_time} seconds before retry...")
-                    time.sleep(wait_time)
-                    continue
+                if attempt == max_retries - 1:  # Last attempt
+                    print("Rate limit reached for options data.")
+                    return None
+                continue
             print(f"Error in get_options_chain: {str(e)}")
             return None
     return None
