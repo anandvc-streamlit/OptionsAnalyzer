@@ -3,7 +3,7 @@ import pandas as pd
 from datetime import datetime
 import time
 
-def get_stock_info(ticker_symbol, max_retries=3, initial_delay=5):
+def get_stock_info(ticker_symbol, max_retries=5, initial_delay=10):
     """
     Fetch basic stock information with improved error handling and retry logic
     """
@@ -46,15 +46,15 @@ def get_stock_info(ticker_symbol, max_retries=3, initial_delay=5):
             if "Too Many Requests" in str(e):
                 if attempt == max_retries - 1:  # Last attempt
                     return {
-                        "error": "Yahoo Finance rate limit reached. Please wait 1-2 minutes before trying again. "
-                                "This helps ensure stable data retrieval for all users."
+                        "error": "We're experiencing high traffic. Please try again in a few minutes. "
+                                "💡 Tip: Try searching for a different stock symbol or refresh after waiting."
                     }
                 continue
             print(f"Error fetching stock info: {str(e)}")
             return None
     return None
 
-def get_options_chain(ticker_symbol, option_type='both', max_retries=3, initial_delay=5):
+def get_options_chain(ticker_symbol, option_type='both', max_retries=5, initial_delay=10):
     """
     Fetch options chain data with improved error handling and retry logic
     """

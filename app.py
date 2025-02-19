@@ -24,6 +24,11 @@ st.markdown("""
     .stProgress > div > div > div > div {
         background-color: #0031b3;
     }
+    .loading-text {
+        color: #0031b3;
+        font-size: 1.2em;
+        margin-bottom: 1rem;
+    }
 </style>
 """, unsafe_allow_html=True)
 
@@ -55,16 +60,23 @@ with st.sidebar:
     2. Select option type
     3. View ROI calculations
     4. Compare different strikes and dates
+
+    #### Rate Limits
+    To ensure stable data retrieval:
+    - Wait a few seconds between searches
+    - Try different tickers if one is rate limited
+    - Refresh the page if needed
     """)
 
 # Main content
 if ticker:
-    with st.spinner('Fetching stock information...'):
+    with st.spinner('Fetching market data... This may take a few moments.'):
         stock_info = get_stock_info(ticker)
 
     if stock_info:
         if "error" in stock_info:
             st.error(stock_info["error"])
+            st.info("While waiting, you can try searching for a different stock symbol or review the tips in the sidebar.")
         else:
             # Stock information
             col1, col2, col3 = st.columns(3)
@@ -76,7 +88,7 @@ if ticker:
                 st.metric("Market Cap", f"${stock_info['market_cap']:,.0f}")
 
             # Fetch options data
-            with st.spinner('Calculating options ROI...'):
+            with st.spinner('Calculating options ROI... Please wait.'):
                 options_data = get_options_chain(ticker, option_type)
 
             if options_data is not None:
@@ -207,6 +219,8 @@ if ticker:
                 else:
                     st.error("No valid options data available for processing.")
             else:
-                st.error("Failed to fetch options data. Please check the ticker symbol.")
+                st.error("Failed to fetch options data. Please try again in a few minutes.")
+                st.info("💡 Tip: While waiting, you can try searching for a different stock symbol.")
     else:
-        st.error("Failed to fetch stock information. Please check the ticker symbol.")
+        st.error("Failed to fetch stock information. Please check the ticker symbol and try again.")
+        st.info("💡 Make sure the ticker symbol is correct and try again in a few moments.")
