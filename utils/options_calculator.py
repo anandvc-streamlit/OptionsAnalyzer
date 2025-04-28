@@ -62,14 +62,15 @@ def process_options_data(options_chain, current_stock_price):
             if days_to_expiry == 0:
                 continue
 
-            # Calculate the midpoint of bid and ask prices
+            # Get the bid and ask prices
             bid_price = row['bid']
             ask_price = row['ask']
 
             if bid_price <= 0 or ask_price <= 0:
                 continue
 
-            premium = (bid_price + ask_price) / 2
+            # Use the lower of Bid and Ask as the Market Premium
+            premium = min(bid_price, ask_price)
 
             if premium <= 0:
                 continue

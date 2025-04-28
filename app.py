@@ -196,8 +196,8 @@ if ticker:
                                     help="Option strike price"
                                 ),
                                 "Premium": st.column_config.TextColumn(
-                                    "Premium (Bid-Ask Midpoint)",
-                                    help="Midpoint of Bid and Ask prices"
+                                    "Market Premium",
+                                    help="Lower of Bid and Ask prices"
                                 ),
                                 "Bid": st.column_config.TextColumn(
                                     "Bid",
