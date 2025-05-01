@@ -2,6 +2,7 @@ import streamlit as st
 import pandas as pd
 import plotly.express as px
 import time
+import random
 from utils.data_fetcher import get_stock_info, get_options_chain
 from utils.options_calculator import process_options_data
 
@@ -44,18 +45,30 @@ This page displays PUT options data for multiple tickers with preset filters:
 _Data is sourced from Yahoo Finance and updates regularly during market hours (slight delay may occur)._
 """)
 
-# List of tickers to analyze
-tickers = ["MSTY", "PLTY", "TSLA", "SMCI", "SOFI", "NVDA", "AMZN", "MSFT", 
-          "AAPL", "HIMS", "HOOD", "META", "INTC", "OKTA", "AVGO", "GOOG", 
-          "T", "O", "LLY", "NFLX", "MSTR"]
+# List of all available tickers
+available_tickers = ["MSTY", "PLTY", "TSLA", "SMCI", "SOFI", "NVDA", "AMZN", "MSFT", 
+                  "AAPL", "HIMS", "HOOD", "META", "INTC", "OKTA", "AVGO", "GOOG", 
+                  "T", "O", "LLY", "NFLX", "MSTR"]
 
 # Filters - These will be applied to all tickers
+st.sidebar.markdown("### Ticker Selection")
+# Allow users to select which tickers they want to analyze
+selected_tickers = st.sidebar.multiselect(
+    "Select tickers to analyze",
+    available_tickers,
+    default=available_tickers[:5]  # Default to first 5 tickers to avoid rate limits
+)
+
 st.sidebar.markdown("### Global Filters")
 max_days_filter = st.sidebar.number_input("Max Days to Expiry", value=51, min_value=1, max_value=365, step=1)
 below_current_price_percent = st.sidebar.slider("Max Strike Price (% below current)", value=10.0, min_value=1.0, max_value=30.0, step=0.5)
 min_open_interest = st.sidebar.number_input("Min Open Interest", value=5, min_value=1, step=1)
 min_volume = st.sidebar.number_input("Min Volume", value=5, min_value=1, step=1)
 min_premium = st.sidebar.number_input("Min Premium ($)", value=0.05, min_value=0.01, step=0.01, format="%.2f")
+
+# Button to refresh data
+if st.sidebar.button("Refresh Data"):
+    st.cache_data.clear()
 
 # Sidebar with instructions
 with st.sidebar:
@@ -139,60 +152,86 @@ def process_ticker(ticker):
         else:
             return ticker, None, f"No options matching filters for {ticker}"
 
-# Process all tickers
-for ticker in tickers:
-    ticker_container = st.container()
-    with ticker_container:
-        st.subheader(f"{ticker}")
-        
-        # Use caching to avoid rate limits
-        @st.cache_data(ttl=900)  # Cache for 15 minutes
-        def cached_process_ticker(ticker):
-            return process_ticker(ticker)
-        
-        ticker, data, error = cached_process_ticker(ticker)
-        
-        if error:
-            st.error(error)
-            continue
-        
-        # Display stock info
-        col1, col2 = st.columns(2)
-        with col1:
-            st.metric("Stock Price", f"${data['current_price']:.2f}")
-        with col2:
-            st.metric("Company", data['company_name'])
-        
-        # Display the filtered dataframe
-        st.dataframe(
-            data['display_df'],
-            use_container_width=True,
-            hide_index=True,
-            column_config={
-                "Annualized ROI (%)": st.column_config.NumberColumn(
-                    "Annualized ROI (%)",
-                    format="%.2f%%",
-                ),
-                "Strike Price": st.column_config.TextColumn(
-                    "Strike Price",
-                    help="Option strike price"
-                ),
-                "Premium": st.column_config.TextColumn(
-                    "Market Premium",
-                    help="Lower of Bid and Ask prices"
-                ),
-                "Bid": st.column_config.TextColumn(
-                    "Bid",
-                    help="Bid price"
-                ),
-                "Ask": st.column_config.TextColumn(
-                    "Ask",
-                    help="Ask price"
-                ),
-                "Implied Volatility": st.column_config.TextColumn(
-                    "Implied Volatility",
-                    help="Option implied volatility"
-                )
-            }
-        )
-        st.divider()
+# Define the cached ticker processing function outside the loop to avoid redefinition warnings
+@st.cache_data(ttl=900)  # Cache for 15 minutes
+def cached_process_ticker(ticker):
+    return process_ticker(ticker)
+
+# Progress bar for loading tickers
+if selected_tickers:
+    st.write(f"Loading data for {len(selected_tickers)} tickers...")
+    progress_bar = st.progress(0)
+    
+    # Process selected tickers with randomized delays to avoid rate limits
+    selected_tickers_list = selected_tickers if isinstance(selected_tickers, list) else list(selected_tickers)
+    for i, ticker in enumerate(selected_tickers_list):
+        ticker_container = st.container()
+        with ticker_container:
+            st.subheader(f"{ticker}")
+            
+            # Update progress bar
+            progress_bar.progress((i + 1) / len(selected_tickers))
+            
+            # Add a small random delay between requests to reduce rate limiting
+            if i > 0:  # Don't delay the first request
+                delay = random.uniform(0.5, 2.0)
+                time.sleep(delay)
+            
+            # Process ticker and get data
+            ticker, data, error = cached_process_ticker(ticker)
+            
+            if error:
+                st.error(error)
+                continue
+            
+            # Display stock info
+            col1, col2, col3 = st.columns([1, 2, 1])
+            with col1:
+                st.metric("Stock Price", f"${data['current_price']:.2f}")
+            with col2:
+                st.metric("Company", data['company_name'])
+            with col3:
+                max_strike_display = data['current_price'] * (1 - below_current_price_percent/100)
+                st.metric("Max Strike Price", f"${max_strike_display:.2f}")
+            
+            # Show options count
+            st.write(f"Showing {len(data['display_df'])} filtered PUT options (max {max_days_filter} days to expiry)")
+            
+            # Display the filtered dataframe
+            st.dataframe(
+                data['display_df'],
+                use_container_width=True,
+                hide_index=True,
+                column_config={
+                    "Annualized ROI (%)": st.column_config.NumberColumn(
+                        "Annualized ROI (%)",
+                        format="%.2f%%",
+                    ),
+                    "Strike Price": st.column_config.TextColumn(
+                        "Strike Price",
+                        help="Option strike price"
+                    ),
+                    "Premium": st.column_config.TextColumn(
+                        "Market Premium",
+                        help="Lower of Bid and Ask prices"
+                    ),
+                    "Bid": st.column_config.TextColumn(
+                        "Bid",
+                        help="Bid price"
+                    ),
+                    "Ask": st.column_config.TextColumn(
+                        "Ask",
+                        help="Ask price"
+                    ),
+                    "Implied Volatility": st.column_config.TextColumn(
+                        "Implied Volatility",
+                        help="Option implied volatility"
+                    )
+                }
+            )
+            st.divider()
+    
+    # Clear the progress bar when done
+    progress_bar.empty()
+else:
+    st.info("Please select at least one ticker from the sidebar to analyze.")
