@@ -1,6 +1,7 @@
 import yfinance as yf
 import pandas as pd
 import streamlit as st
+import re
 from datetime import datetime
 import time
 
@@ -17,7 +18,7 @@ def get_stock_info(ticker_symbol, max_retries=5, initial_delay=10, status_placeh
                 # Update status message if placeholder is provided
                 if status_placeholder:
                     with status_placeholder.container():
-                        st.warning(f"Rate limited by Yahoo Finance API. Retry {attempt + 1}/{max_retries} in {wait_time} seconds...")
+                        st.warning(f"Rate limited by Yahoo Finance API (usually HTTP 429). Retry {attempt + 1}/{max_retries} in {wait_time} seconds...")
                         # Calculate progress as a value between 0.0 and 1.0
                         progress = min(0.99, attempt / max_retries)
                         st.progress(progress)
@@ -56,11 +57,22 @@ def get_stock_info(ticker_symbol, max_retries=5, initial_delay=10, status_placeh
             }
         except Exception as e:
             error_str = str(e)
-            if "Too Many Requests" in error_str:
+            # Check if it's a rate limiting error
+            if "Too Many Requests" in error_str or "429" in error_str:
+                # Extract HTTP status code if present
+                http_code = "Unknown"
+                if "status" in error_str:
+                    try:
+                        code_match = re.search(r'status ([0-9]+)', error_str)
+                        if code_match:
+                            http_code = code_match.group(1)
+                    except:
+                        pass
+                
                 if attempt == max_retries - 1:  # Last attempt
                     return {
-                        "error": "We're experiencing high traffic. Please try again in a few minutes.",
-                        "details": f"Error: {error_str}. Yahoo Finance is rate limiting our requests."
+                        "error": f"We're experiencing high traffic (HTTP {http_code}). Please try again in a few minutes.",
+                        "details": f"Error: {error_str}\n\nYahoo Finance is rate limiting our requests."
                     }
                 continue
             print(f"Error fetching stock info: {error_str}")
@@ -80,7 +92,7 @@ def get_options_chain(ticker_symbol, option_type='both', max_retries=5, initial_
                 # Update status message if placeholder is provided
                 if status_placeholder:
                     with status_placeholder.container():
-                        st.warning(f"Rate limited by Yahoo Finance API. Retry {attempt + 1}/{max_retries} in {wait_time} seconds...")
+                        st.warning(f"Rate limited by Yahoo Finance API (usually HTTP 429). Retry {attempt + 1}/{max_retries} in {wait_time} seconds...")
                         # Calculate progress as a value between 0.0 and 1.0
                         progress = min(0.99, attempt / max_retries)
                         st.progress(progress)
@@ -138,13 +150,24 @@ def get_options_chain(ticker_symbol, option_type='both', max_retries=5, initial_
 
         except Exception as e:
             error_str = str(e)
-            if "Too Many Requests" in error_str:
+            # Check if it's a rate limiting error
+            if "Too Many Requests" in error_str or "429" in error_str:
+                # Extract HTTP status code if present
+                http_code = "Unknown"
+                if "status" in error_str:
+                    try:
+                        code_match = re.search(r'status ([0-9]+)', error_str)
+                        if code_match:
+                            http_code = code_match.group(1)
+                    except:
+                        pass
+                
                 if attempt == max_retries - 1:  # Last attempt
-                    error_msg = "Rate limit reached for options data"
+                    error_msg = f"Rate limit reached for options data (HTTP {http_code})"
                     print(error_msg)
                     return {
-                        "error": "Data retrieval rate limit exceeded", 
-                        "details": f"Error: {error_str}. The Yahoo Finance API is limiting our requests. Please try again in a few minutes."
+                        "error": f"Data retrieval rate limit exceeded (HTTP {http_code})", 
+                        "details": f"Error: {error_str}\n\nThe Yahoo Finance API is limiting our requests. Please try again in a few minutes."
                     }
                 continue
             error_msg = f"Error in get_options_chain: {error_str}"
