@@ -39,8 +39,6 @@ This calculator helps you analyze the potential returns from options trading str
 Enter a stock ticker to get started!
 
 _Data is sourced from Yahoo Finance and updates regularly during market hours (slight delay may occur)._
-
-[View Quick Sell Puts Analysis](Quick_Sell_Puts)
 """)
 
 # Main input controls
@@ -56,10 +54,6 @@ with col2:
 
 # Sidebar with instructions
 with st.sidebar:
-    st.markdown("### Navigation")
-    st.markdown("[Home](/)")
-    st.markdown("[Quick Sell Puts](Quick_Sell_Puts)")
-    
     st.markdown("### How it works")
     st.markdown("""
     1. Enter a stock ticker
