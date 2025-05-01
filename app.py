@@ -70,8 +70,19 @@ with st.sidebar:
 
 # Main content
 if ticker:
-    with st.spinner('Fetching market data... This may take a few moments.'):
-        stock_info = get_stock_info(ticker)
+    # Create placeholder for status messages
+    status_placeholder = st.empty()
+    
+    # Display initial loading message
+    with status_placeholder.container():
+        st.write('Fetching market data... This may take a few moments.')
+        progress_bar = st.progress(0)
+    
+    # Pass the status placeholder to the function
+    stock_info = get_stock_info(ticker, status_placeholder=status_placeholder)
+    
+    # Clear the placeholder after data fetching is complete
+    status_placeholder.empty()
 
     if stock_info:
         if isinstance(stock_info, dict) and "error" in stock_info:
@@ -94,8 +105,19 @@ if ticker:
                 st.metric("Market Cap", f"${stock_info['market_cap']:,.0f}")
 
             # Fetch options data
-            with st.spinner('Calculating options ROI... Please wait.'):
-                options_data = get_options_chain(ticker, option_type)
+            # Create placeholder for options status messages
+            options_status_placeholder = st.empty()
+            
+            # Display initial loading message
+            with options_status_placeholder.container():
+                st.write('Calculating options ROI... Please wait.')
+                options_progress_bar = st.progress(0)
+            
+            # Pass the status placeholder to the function
+            options_data = get_options_chain(ticker, option_type, status_placeholder=options_status_placeholder)
+            
+            # Clear the placeholder after data fetching is complete
+            options_status_placeholder.empty()
 
             if isinstance(options_data, dict) and "error" in options_data:
                 # Display main error message

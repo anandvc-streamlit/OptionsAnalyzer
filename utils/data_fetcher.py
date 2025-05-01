@@ -1,9 +1,10 @@
 import yfinance as yf
 import pandas as pd
+import streamlit as st
 from datetime import datetime
 import time
 
-def get_stock_info(ticker_symbol, max_retries=5, initial_delay=10):
+def get_stock_info(ticker_symbol, max_retries=5, initial_delay=10, status_placeholder=None):
     """
     Fetch basic stock information with improved error handling and retry logic
     """
@@ -12,6 +13,14 @@ def get_stock_info(ticker_symbol, max_retries=5, initial_delay=10):
             if attempt > 0:  # Don't sleep on first attempt
                 wait_time = initial_delay * (2 ** attempt)  # Exponential backoff starting from initial_delay
                 print(f"Rate limited. Waiting {wait_time} seconds before retry {attempt + 1}/{max_retries}...")
+                
+                # Update status message if placeholder is provided
+                if status_placeholder:
+                    with status_placeholder.container():
+                        st.warning(f"Rate limited by Yahoo Finance API. Retry {attempt + 1}/{max_retries} in {wait_time} seconds...")
+                        progress = (attempt / max_retries) * 100
+                        st.progress(progress)
+                
                 time.sleep(wait_time)
 
             stock = yf.Ticker(ticker_symbol)
@@ -57,7 +66,7 @@ def get_stock_info(ticker_symbol, max_retries=5, initial_delay=10):
             return {"error": f"Failed to retrieve stock data for {ticker_symbol}", "details": error_str}
     return {"error": "Maximum retries exceeded", "details": "Failed to fetch stock data after multiple attempts due to persistent errors."}
 
-def get_options_chain(ticker_symbol, option_type='both', max_retries=5, initial_delay=10):
+def get_options_chain(ticker_symbol, option_type='both', max_retries=5, initial_delay=10, status_placeholder=None):
     """
     Fetch options chain data with improved error handling and retry logic
     """
@@ -66,6 +75,14 @@ def get_options_chain(ticker_symbol, option_type='both', max_retries=5, initial_
             if attempt > 0:  # Don't sleep on first attempt
                 wait_time = initial_delay * (2 ** attempt)  # Exponential backoff starting from initial_delay
                 print(f"Rate limited. Waiting {wait_time} seconds before retry {attempt + 1}/{max_retries}...")
+                
+                # Update status message if placeholder is provided
+                if status_placeholder:
+                    with status_placeholder.container():
+                        st.warning(f"Rate limited by Yahoo Finance API. Retry {attempt + 1}/{max_retries} in {wait_time} seconds...")
+                        progress = (attempt / max_retries) * 100
+                        st.progress(progress)
+                
                 time.sleep(wait_time)
 
             stock = yf.Ticker(ticker_symbol)
