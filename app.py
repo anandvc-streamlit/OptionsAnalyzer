@@ -74,8 +74,14 @@ if ticker:
         stock_info = get_stock_info(ticker)
 
     if stock_info:
-        if "error" in stock_info:
+        if isinstance(stock_info, dict) and "error" in stock_info:
             st.error(stock_info["error"])
+            
+            # Display technical details in an expandable section if available
+            if "details" in stock_info:
+                with st.expander("Show Technical Details"):
+                    st.code(stock_info["details"], language="text")
+                    
             st.info("While waiting, you can try searching for a different stock symbol or review the tips in the sidebar.")
         else:
             # Stock information
@@ -91,7 +97,17 @@ if ticker:
             with st.spinner('Calculating options ROI... Please wait.'):
                 options_data = get_options_chain(ticker, option_type)
 
-            if options_data is not None:
+            if isinstance(options_data, dict) and "error" in options_data:
+                # Display main error message
+                st.error(options_data["error"])
+                
+                # Display technical details in an expandable section
+                if "details" in options_data:
+                    with st.expander("Show Technical Details"):
+                        st.code(options_data["details"], language="text")
+                        
+                st.info("💡 Tip: While waiting, you can try searching for a different stock symbol or review the tips in the sidebar.")
+            elif options_data is not None:
                 # Process options data
                 results = process_options_data(options_data, stock_info['current_price'])
 
@@ -218,9 +234,16 @@ if ticker:
                         st.warning("No options data matching the selected filters.")
                 else:
                     st.error("No valid options data available for processing.")
+                    with st.expander("Show Technical Details"):
+                        st.code("The options data was retrieved but could not be processed correctly. This might be due to missing or invalid data in the API response.", language="text")
+                    st.info("💡 Try a different ticker symbol with more active options trading.")
             else:
                 st.error("Failed to fetch options data. Please try again in a few minutes.")
-                st.info("💡 Tip: While waiting, you can try searching for a different stock symbol.")
+                with st.expander("Show Technical Details"):
+                    st.code("The request to Yahoo Finance API did not return any data or returned an invalid response format.", language="text")
+                st.info("💡 Tip: While waiting, you can try searching for a different stock symbol or check if the ticker has options available.")
     else:
         st.error("Failed to fetch stock information. Please check the ticker symbol and try again.")
+        with st.expander("Show Technical Details"):
+            st.code("The request to Yahoo Finance API did not return any data or returned an invalid response format.", language="text")
         st.info("💡 Make sure the ticker symbol is correct and try again in a few moments.")

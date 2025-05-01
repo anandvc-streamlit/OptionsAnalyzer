@@ -19,8 +19,9 @@ def get_stock_info(ticker_symbol, max_retries=5, initial_delay=10):
 
             # Add error checking for missing data
             if not info:
-                print(f"No information found for ticker {ticker_symbol}")
-                return None
+                error_msg = f"No information found for ticker {ticker_symbol}"
+                print(error_msg)
+                return {"error": error_msg, "details": f"The ticker '{ticker_symbol}' could not be found or returned no data."}
 
             # Get current price with fallbacks
             current_price = None
@@ -33,8 +34,9 @@ def get_stock_info(ticker_symbol, max_retries=5, initial_delay=10):
                     break
 
             if not current_price:
-                print(f"Warning: Could not fetch price for {ticker_symbol}")
-                return None
+                error_msg = f"Warning: Could not fetch price for {ticker_symbol}"
+                print(error_msg)
+                return {"error": error_msg, "details": "Price data is not available for this ticker symbol."}
 
             return {
                 'name': info.get('longName', 'N/A'),
@@ -43,16 +45,17 @@ def get_stock_info(ticker_symbol, max_retries=5, initial_delay=10):
                 'market_cap': info.get('marketCap', 0),
             }
         except Exception as e:
-            if "Too Many Requests" in str(e):
+            error_str = str(e)
+            if "Too Many Requests" in error_str:
                 if attempt == max_retries - 1:  # Last attempt
                     return {
-                        "error": "We're experiencing high traffic. Please try again in a few minutes. "
-                                "💡 Tip: Try searching for a different stock symbol or refresh after waiting."
+                        "error": "We're experiencing high traffic. Please try again in a few minutes.",
+                        "details": f"Error: {error_str}. Yahoo Finance is rate limiting our requests."
                     }
                 continue
-            print(f"Error fetching stock info: {str(e)}")
-            return None
-    return None
+            print(f"Error fetching stock info: {error_str}")
+            return {"error": f"Failed to retrieve stock data for {ticker_symbol}", "details": error_str}
+    return {"error": "Maximum retries exceeded", "details": "Failed to fetch stock data after multiple attempts due to persistent errors."}
 
 def get_options_chain(ticker_symbol, option_type='both', max_retries=5, initial_delay=10):
     """
@@ -69,8 +72,9 @@ def get_options_chain(ticker_symbol, option_type='both', max_retries=5, initial_
             expirations = stock.options
 
             if not expirations:
-                print(f"No options expirations found for {ticker_symbol}")
-                return None
+                error_msg = f"No options expirations found for {ticker_symbol}"
+                print(error_msg)
+                return {"error": error_msg, "details": "No options data available for this ticker symbol."}
 
             print(f"Found {len(expirations)} expiration dates for {ticker_symbol}")
 
@@ -98,25 +102,33 @@ def get_options_chain(ticker_symbol, option_type='both', max_retries=5, initial_
                     continue
 
             if not all_options:
-                print("No valid options data found")
-                return None
+                error_msg = "No valid options data found"
+                print(error_msg)
+                return {"error": error_msg, "details": f"Could not retrieve any valid options data for {ticker_symbol}."}
 
             combined_options = pd.concat(all_options)
             combined_options = combined_options.dropna(subset=['strike', 'lastPrice', 'bid', 'ask'])
 
             if combined_options.empty:
-                print("No valid options data after filtering")
-                return None
+                error_msg = "No valid options data after filtering"
+                print(error_msg)
+                return {"error": error_msg, "details": "Data was retrieved but contained no valid options after filtering."}
 
             print(f"Successfully processed {len(combined_options)} options contracts")
             return combined_options
 
         except Exception as e:
-            if "Too Many Requests" in str(e):
+            error_str = str(e)
+            if "Too Many Requests" in error_str:
                 if attempt == max_retries - 1:  # Last attempt
-                    print("Rate limit reached for options data.")
-                    return None
+                    error_msg = "Rate limit reached for options data"
+                    print(error_msg)
+                    return {
+                        "error": "Data retrieval rate limit exceeded", 
+                        "details": f"Error: {error_str}. The Yahoo Finance API is limiting our requests. Please try again in a few minutes."
+                    }
                 continue
-            print(f"Error in get_options_chain: {str(e)}")
-            return None
-    return None
+            error_msg = f"Error in get_options_chain: {error_str}"
+            print(error_msg)
+            return {"error": "Failed to retrieve options data", "details": error_str}
+    return {"error": "Maximum retries exceeded", "details": "Failed to fetch options data after multiple attempts."}
