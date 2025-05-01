@@ -5,10 +5,16 @@ import re
 from datetime import datetime
 import time
 
+# Initialize global variables to store error details
+last_error_message = ""
+last_error_details = ""
+
 def get_stock_info(ticker_symbol, max_retries=5, initial_delay=10, status_placeholder=None):
     """
     Fetch basic stock information with improved error handling and retry logic
     """
+    global last_error_message, last_error_details
+    
     for attempt in range(max_retries):
         try:
             if attempt > 0:  # Don't sleep on first attempt
@@ -18,7 +24,17 @@ def get_stock_info(ticker_symbol, max_retries=5, initial_delay=10, status_placeh
                 # Update status message if placeholder is provided
                 if status_placeholder:
                     with status_placeholder.container():
-                        st.warning(f"Rate limited by Yahoo Finance API (usually HTTP 429). Retry {attempt + 1}/{max_retries} in {wait_time} seconds...")
+                        st.warning(f"Yahoo Finance API rate limit error. Retry {attempt + 1}/{max_retries} in {wait_time} seconds...")
+                        
+                        # Show actual error message if available
+                        if last_error_message:
+                            st.error(last_error_message)
+                        
+                        # Show detailed error info if available
+                        if last_error_details:
+                            with st.expander("Error Details"):
+                                st.code(last_error_details, language="text")
+                        
                         # Calculate progress as a value between 0.0 and 1.0
                         progress = min(0.99, attempt / max_retries)
                         st.progress(progress)
@@ -57,6 +73,11 @@ def get_stock_info(ticker_symbol, max_retries=5, initial_delay=10, status_placeh
             }
         except Exception as e:
             error_str = str(e)
+            
+            # Store the error details for display during retries
+            last_error_message = f"Yahoo Finance API Error: {error_str[:100]}..."
+            last_error_details = error_str
+            
             # Check if it's a rate limiting error
             if "Too Many Requests" in error_str or "429" in error_str:
                 # Extract HTTP status code if present
@@ -83,6 +104,8 @@ def get_options_chain(ticker_symbol, option_type='both', max_retries=5, initial_
     """
     Fetch options chain data with improved error handling and retry logic
     """
+    global last_error_message, last_error_details
+    
     for attempt in range(max_retries):
         try:
             if attempt > 0:  # Don't sleep on first attempt
@@ -92,7 +115,17 @@ def get_options_chain(ticker_symbol, option_type='both', max_retries=5, initial_
                 # Update status message if placeholder is provided
                 if status_placeholder:
                     with status_placeholder.container():
-                        st.warning(f"Rate limited by Yahoo Finance API (usually HTTP 429). Retry {attempt + 1}/{max_retries} in {wait_time} seconds...")
+                        st.warning(f"Yahoo Finance API rate limit error. Retry {attempt + 1}/{max_retries} in {wait_time} seconds...")
+                        
+                        # Show actual error message if available
+                        if last_error_message:
+                            st.error(last_error_message)
+                        
+                        # Show detailed error info if available
+                        if last_error_details:
+                            with st.expander("Error Details"):
+                                st.code(last_error_details, language="text")
+                        
                         # Calculate progress as a value between 0.0 and 1.0
                         progress = min(0.99, attempt / max_retries)
                         st.progress(progress)
@@ -150,6 +183,11 @@ def get_options_chain(ticker_symbol, option_type='both', max_retries=5, initial_
 
         except Exception as e:
             error_str = str(e)
+            
+            # Store the error details for display during retries
+            last_error_message = f"Yahoo Finance API Error: {error_str[:100]}..."
+            last_error_details = error_str
+            
             # Check if it's a rate limiting error
             if "Too Many Requests" in error_str or "429" in error_str:
                 # Extract HTTP status code if present
