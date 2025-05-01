@@ -40,7 +40,7 @@ Enter a stock ticker to get started!
 
 _Data is sourced from Yahoo Finance and updates regularly during market hours (slight delay may occur)._
 
-[View Quick Sell Puts Analysis](Quick_Sell_Puts)
+[View Quick Sell Puts Analysis](/Quick_Sell_Puts)
 """)
 
 # Main input controls
@@ -58,7 +58,7 @@ with col2:
 with st.sidebar:
     st.markdown("### Navigation")
     st.markdown("[Home](/)")
-    st.markdown("[Quick Sell Puts](Quick_Sell_Puts)")
+    st.markdown("[Quick Sell Puts](/Quick_Sell_Puts)")
     
     st.markdown("### How it works")
     st.markdown("""
