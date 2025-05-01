@@ -18,7 +18,8 @@ def get_stock_info(ticker_symbol, max_retries=5, initial_delay=10, status_placeh
                 if status_placeholder:
                     with status_placeholder.container():
                         st.warning(f"Rate limited by Yahoo Finance API. Retry {attempt + 1}/{max_retries} in {wait_time} seconds...")
-                        progress = (attempt / max_retries) * 100
+                        # Calculate progress as a value between 0.0 and 1.0
+                        progress = min(0.99, attempt / max_retries)
                         st.progress(progress)
                 
                 time.sleep(wait_time)
@@ -80,7 +81,8 @@ def get_options_chain(ticker_symbol, option_type='both', max_retries=5, initial_
                 if status_placeholder:
                     with status_placeholder.container():
                         st.warning(f"Rate limited by Yahoo Finance API. Retry {attempt + 1}/{max_retries} in {wait_time} seconds...")
-                        progress = (attempt / max_retries) * 100
+                        # Calculate progress as a value between 0.0 and 1.0
+                        progress = min(0.99, attempt / max_retries)
                         st.progress(progress)
                 
                 time.sleep(wait_time)
