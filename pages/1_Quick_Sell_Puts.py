@@ -52,15 +52,24 @@ available_tickers = ["MSTY", "PLTY", "TSLA", "SMCI", "SOFI", "NVDA", "AMZN", "MS
 
 # Filters - These will be applied to all tickers
 st.sidebar.markdown("### Ticker Selection")
-# Allow users to select which tickers they want to analyze
+
+# Add warning about rate limits
+st.sidebar.warning("**Rate Limit Warning**: Yahoo Finance API has strict rate limits. Select fewer tickers to avoid timeouts.")
+
+# Allow users to select which tickers they want to analyze - default to just 2 tickers
 selected_tickers = st.sidebar.multiselect(
     "Select tickers to analyze",
     available_tickers,
-    default=available_tickers[:5]  # Default to first 5 tickers to avoid rate limits
+    default=available_tickers[:2]  # Default to first 2 tickers to avoid rate limits
 )
 
 st.sidebar.markdown("### Global Filters")
-max_days_filter = st.sidebar.number_input("Max Days to Expiry", value=51, min_value=1, max_value=365, step=1)
+
+# Make the days more prominent with a slider
+st.sidebar.markdown("**Days to Expiry**")
+max_days_filter = st.sidebar.slider("Maximum", value=51, min_value=1, max_value=365, step=1, help="Maximum number of days until option expiration to include")
+
+# Other filters
 below_current_price_percent = st.sidebar.slider("Max Strike Price (% below current)", value=10.0, min_value=1.0, max_value=30.0, step=0.5)
 min_open_interest = st.sidebar.number_input("Min Open Interest", value=5, min_value=1, step=1)
 min_volume = st.sidebar.number_input("Min Volume", value=5, min_value=1, step=1)
@@ -159,26 +168,40 @@ def cached_process_ticker(ticker):
 
 # Progress bar for loading tickers
 if selected_tickers:
+    # Show a message about rate limits if too many tickers are selected
+    if len(selected_tickers) > 4:
+        st.warning("⚠️ You've selected more than 4 tickers. Loading may take longer or fail due to rate limits.")
+    
     st.write(f"Loading data for {len(selected_tickers)} tickers...")
     progress_bar = st.progress(0)
     
-    # Process selected tickers with randomized delays to avoid rate limits
+    # Create a status container for real-time feedback
+    status_container = st.empty()
+    
+    # Process selected tickers with increased delays to avoid rate limits
     selected_tickers_list = selected_tickers if isinstance(selected_tickers, list) else list(selected_tickers)
     for i, ticker in enumerate(selected_tickers_list):
         ticker_container = st.container()
+        
+        # Update status message
+        status_container.info(f"Processing {ticker} ({i+1} of {len(selected_tickers)})")
+        
         with ticker_container:
             st.subheader(f"{ticker}")
             
             # Update progress bar
             progress_bar.progress((i + 1) / len(selected_tickers))
             
-            # Add a small random delay between requests to reduce rate limiting
+            # Add a larger delay between requests to reduce rate limiting
             if i > 0:  # Don't delay the first request
-                delay = random.uniform(0.5, 2.0)
+                delay = random.uniform(2.0, 5.0)  # Increase delay between tickers
+                status_message = status_container.info(f"Waiting {delay:.1f}s before processing {ticker} to avoid rate limits...")
                 time.sleep(delay)
+                status_message.empty()
             
-            # Process ticker and get data
-            ticker, data, error = cached_process_ticker(ticker)
+            # Process ticker and get data with a timeout indicator
+            with st.spinner(f"Fetching data for {ticker}..."):
+                ticker, data, error = cached_process_ticker(ticker)
             
             if error:
                 st.error(error)
@@ -231,7 +254,11 @@ if selected_tickers:
             )
             st.divider()
     
-    # Clear the progress bar when done
+    # Clear the progress bar and status when done
     progress_bar.empty()
+    status_container.success("All tickers processed successfully!")
+    
+    # Add a note about cached data
+    st.info("⏰ Data is cached for 15 minutes. Use the 'Refresh Data' button in the sidebar to get fresh data.")
 else:
     st.info("Please select at least one ticker from the sidebar to analyze.")
