@@ -1,0 +1,6 @@
+pandas>=2.2.3
+plotly>=6.0.0
+streamlit>=1.42.0
+trafilatura>=2.0.0
+twilio>=9.4.4
+yfinance==0.2.54
