@@ -1,8 +1,14 @@
-import streamlit as st
-import pandas as pd
-import plotly.express as px
-from utils.data_fetcher import get_stock_info, get_options_chain
-from utils.options_calculator import process_options_data
+print("Streamlit app is starting up...")
+
+try:
+    import streamlit as st
+    import pandas as pd
+    import plotly.express as px
+    from utils.data_fetcher import get_stock_info, get_options_chain
+    from utils.options_calculator import process_options_data
+except Exception as e:
+    print("Import error:", e)
+    raise
 
 # Page configuration
 st.set_page_config(
@@ -72,27 +78,27 @@ with st.sidebar:
 if ticker:
     # Create placeholder for status messages
     status_placeholder = st.empty()
-    
+
     # Display initial loading message
     with status_placeholder.container():
         st.write('Fetching market data... This may take a few moments.')
         progress_bar = st.progress(0)
-    
+
     # Pass the status placeholder to the function
     stock_info = get_stock_info(ticker, status_placeholder=status_placeholder)
-    
+
     # Clear the placeholder after data fetching is complete
     status_placeholder.empty()
 
     if stock_info:
         if isinstance(stock_info, dict) and "error" in stock_info:
             st.error(stock_info["error"])
-            
+
             # Display technical details in an expandable section if available
             if "details" in stock_info:
                 with st.expander("Show Technical Details"):
                     st.code(stock_info["details"], language="text")
-                    
+
             st.info("While waiting, you can try searching for a different stock symbol or review the tips in the sidebar.")
         else:
             # Stock information
@@ -107,27 +113,27 @@ if ticker:
             # Fetch options data
             # Create placeholder for options status messages
             options_status_placeholder = st.empty()
-            
+
             # Display initial loading message
             with options_status_placeholder.container():
                 st.write('Calculating options ROI... Please wait.')
                 options_progress_bar = st.progress(0)
-            
+
             # Pass the status placeholder to the function
             options_data = get_options_chain(ticker, option_type, status_placeholder=options_status_placeholder)
-            
+
             # Clear the placeholder after data fetching is complete
             options_status_placeholder.empty()
 
             if isinstance(options_data, dict) and "error" in options_data:
                 # Display main error message
                 st.error(options_data["error"])
-                
+
                 # Display technical details in an expandable section
                 if "details" in options_data:
                     with st.expander("Show Technical Details"):
                         st.code(options_data["details"], language="text")
-                        
+
                 st.info("💡 Tip: While waiting, you can try searching for a different stock symbol or review the tips in the sidebar.")
             elif options_data is not None:
                 # Process options data
@@ -144,7 +150,7 @@ if ticker:
                     col1, col2, col3 = st.columns(3)
 
                     with col1:
-                        min_strike = st.number_input("Min Strike Price", 
+                        min_strike = st.number_input("Min Strike Price",
                                                    value=float(df['Strike Price'].min()),
                                                    step=1.0)
                         max_strike = st.number_input("Max Strike Price",
